@@ -8,7 +8,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 
 
 export default {
@@ -19,6 +19,7 @@ export default {
       scene: null,
       renderer: null,
       mesh: null,
+      gui: null,
       controls:null
     }
   },
@@ -61,12 +62,17 @@ export default {
       loader.load(
         'static/gltf/Untitled.gltf',
         function ( gltf ) {
-          let mesh = gltf.scene
-          that.scene.add( mesh );
-          mesh.scale.set(200, 200, 200) //设置模型大小
-          //mesh:模型
-          that.scene.add( childModel.scene );
-          // that.render();
+          that.mesh = gltf.scene
+          that.scene.add( that.mesh );
+          that.mesh.scale.set(3000, 3000, 3000) //设置模型大小
+          console.log('mesh', that.mesh)
+          // mesh.traverse(function (child) {
+	        // if (child.isMesh) {
+	        // 	//给模型下的Mesh添加材质颜色
+          //   child.material.emissive =  child.material.color;
+          //   child.material.emissiveMap = child.material.map ;
+	        // }
+	        // });
         },
         // called while loading is progressing
         function ( xhr ) {
@@ -77,6 +83,44 @@ export default {
           console.log( 'An error happened' );
         }
       )
+    },
+    makeGui: function() {
+      const guiData = {
+        // modelFileName: modelFileList[ 'Car' ],
+        // displayLines: true,
+        // conditionalLines: true,
+        // smoothNormals: true,
+        // constructionStep: 0,
+        // noConstructionSteps: 'No steps.',
+        flatColors: false
+        // mergeModel: false
+      };
+      if ( this.gui ) {
+					this.gui.destroy();
+				}
+				this.gui = new GUI();
+				// gui.add( guiData, 'modelFileName', modelFileList ).name( 'Model' ).onFinishChange( function () {
+				// 	reloadObject( true );
+				// } );
+				this.gui.add( guiData, 'flatColors' ).name( '子模型' ).onChange( function () {
+					reloadObject( false );
+				} );
+        this.gui.add( guiData, 'flatColors' ).name( '步骤' ).onChange( function () {
+					reloadObject( false );
+				} );
+				// gui.add( guiData, 'mergeModel' ).name( 'Merge model' ).onChange( function () {
+				// 	reloadObject( false );
+				// } );
+				// if ( model.userData.numConstructionSteps > 1 ) {
+				// 	gui.add( guiData, 'constructionStep', 0, model.userData.numConstructionSteps - 1 ).step( 1 ).name( 'Construction step' ).onChange( updateObjectsVisibility );
+				// } else {
+				// 	gui.add( guiData, 'noConstructionSteps' ).name( 'Construction step' ).onChange( updateObjectsVisibility );
+				// }
+				// gui.add( guiData, 'smoothNormals' ).name( 'Smooth Normals' ).onChange( function changeNormals() {
+				// 	reloadObject( false );
+				// } );
+				// gui.add( guiData, 'displayLines' ).name( 'Display Lines' ).onChange( updateObjectsVisibility );
+				// gui.add( guiData, 'conditionalLines' ).name( 'Conditional Lines' ).onChange( updateObjectsVisibility );
     },
     render: function() {
       requestAnimationFrame(this.render); //请求再次执行渲染函数render
@@ -92,6 +136,7 @@ export default {
     this.init()
     this.model()
     this.render()
+    this.makeGui()
     this.createControls()
   }
 }
