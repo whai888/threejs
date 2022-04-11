@@ -39,9 +39,9 @@ export default {
       // 添加灯光
       //点光源
       var point = new THREE.PointLight(0xffffff);
-      // point.position.set(400, 200, 300); //点光源位置
+      point.position.set(400, 200, 300); //点光源位置
       this.scene.add(point); //点光源添加到场景中
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      const ambientLight = new THREE.AmbientLight(0x444444);
       this.scene.add(ambientLight);
 
       //创建渲染器对象
