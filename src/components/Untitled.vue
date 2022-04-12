@@ -20,7 +20,9 @@ export default {
       renderer: null,
       mesh: null,
       gui: null,
-      controls:null
+      controls: null,
+      childModelList: null,
+      guiData: {}
     }
   },
   methods: {
@@ -59,13 +61,23 @@ export default {
     model: function() {
       let that = this
       const loader = new GLTFLoader();
+      
       loader.load(
         'static/gltf/Untitled.gltf',
         function ( gltf ) {
-          that.mesh = gltf.scene
+          that.mesh = gltf.scene.children[0]
           that.scene.add( that.mesh );
           that.mesh.scale.set(3000, 3000, 3000) //设置模型大小
-          console.log('mesh', that.mesh)
+          that.childModelList = []
+          that.mesh.traverse(function (child) {
+            if(child.type === 'Object3D'){
+              child.userData.numConstructionSteps = child.children.length
+              that.childModelList.push(child)
+            }
+            // child.userData.constructionStep = child.children.length
+          })
+          
+          that.makeGui(that.childModelList[0].name)
           // mesh.traverse(function (child) {
 	        // if (child.isMesh) {
 	        // 	//给模型下的Mesh添加材质颜色
@@ -84,43 +96,54 @@ export default {
         }
       )
     },
-    makeGui: function() {
-      const guiData = {
-        // modelFileName: modelFileList[ 'Car' ],
+    makeGui: function(modelShowName) {
+      let that = this
+      let modelName = []
+      this.childModelList.forEach(el => {
+        modelName.push(el.name)
+      });
+      that.guiData = {
+        modelFileName: modelShowName,
         // displayLines: true,
         // conditionalLines: true,
         // smoothNormals: true,
-        // constructionStep: 0,
-        // noConstructionSteps: 'No steps.',
-        flatColors: false
+        constructionStep: 0
         // mergeModel: false
       };
-      if ( this.gui ) {
-					this.gui.destroy();
+      if ( that.gui ) {
+					that.gui.destroy();
 				}
-				this.gui = new GUI();
-				// gui.add( guiData, 'modelFileName', modelFileList ).name( 'Model' ).onFinishChange( function () {
-				// 	reloadObject( true );
-				// } );
-				this.gui.add( guiData, 'flatColors' ).name( '子模型' ).onChange( function () {
-					reloadObject( false );
+				that.gui = new GUI();
+				that.gui.add( that.guiData, 'modelFileName', modelName ).name( '子模型' ).onFinishChange( function () {
+					that.reloadObject(true)
 				} );
-        this.gui.add( guiData, 'flatColors' ).name( '步骤' ).onChange( function () {
-					reloadObject( false );
-				} );
-				// gui.add( guiData, 'mergeModel' ).name( 'Merge model' ).onChange( function () {
-				// 	reloadObject( false );
-				// } );
-				// if ( model.userData.numConstructionSteps > 1 ) {
-				// 	gui.add( guiData, 'constructionStep', 0, model.userData.numConstructionSteps - 1 ).step( 1 ).name( 'Construction step' ).onChange( updateObjectsVisibility );
-				// } else {
-				// 	gui.add( guiData, 'noConstructionSteps' ).name( 'Construction step' ).onChange( updateObjectsVisibility );
-				// }
-				// gui.add( guiData, 'smoothNormals' ).name( 'Smooth Normals' ).onChange( function changeNormals() {
-				// 	reloadObject( false );
-				// } );
-				// gui.add( guiData, 'displayLines' ).name( 'Display Lines' ).onChange( updateObjectsVisibility );
-				// gui.add( guiData, 'conditionalLines' ).name( 'Conditional Lines' ).onChange( updateObjectsVisibility );
+        console.log(that.mesh, that.mesh.userData.numConstructionSteps)
+				if ( that.mesh.userData.numConstructionSteps > 1 ) {
+          that.guiData.constructionStep = that.mesh.userData.numConstructionSteps
+					that.gui.add( that.guiData, 'constructionStep', 0, that.mesh.userData.numConstructionSteps, 1 ).name( '操作步骤' ).onChange( that.updateObjectsVisibility );
+				} else {
+					that.gui.add( that.guiData, 'constructionStep', 0, 0).name( '操作步骤' ).onChange( that.updateObjectsVisibility );
+				}
+    },
+    reloadObject(resetCamera) {
+      let that = this
+      if ( that.mesh ) {
+        that.scene.remove( that.mesh );
+      }
+      that.mesh = that.childModelList.filter(it => it.name === that.guiData.modelFileName)[0]
+      that.scene.add( that.mesh );
+      that.mesh.scale.set(3000, 3000, 3000) //设置模型大小
+      that.makeGui(that.guiData.modelFileName)
+    },
+    updateObjectsVisibility(){
+      let that = this
+      that.mesh.children.forEach((it, idx) => {
+        it.visible = (idx+1) <= that.guiData.constructionStep
+      })
+      console.log(that.mesh.children)
+      // that.mesh.traverse( c => {
+      //   c.visible = c.userData.constructionStep <= guiData.constructionStep;
+      // });
     },
     render: function() {
       requestAnimationFrame(this.render); //请求再次执行渲染函数render
@@ -136,7 +159,7 @@ export default {
     this.init()
     this.model()
     this.render()
-    this.makeGui()
+    // this.makeGui()
     this.createControls()
   }
 }
