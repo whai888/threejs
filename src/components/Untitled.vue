@@ -1,5 +1,6 @@
 <template>
   <div>
+    <button @click="exportHandler">导出</button>
     <div id="container"></div>
   </div>
 </template>
@@ -48,9 +49,13 @@ export default {
       this.scene.add(ambientLight);
 
       //创建渲染器对象
-      this.renderer = new THREE.WebGLRenderer({antialias: true});
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        preserveDrawingBuffer: true  // 如果想保存three.js canvas画布上的信息，注意设置preserveDrawingBuffer
+        });
       this.renderer.setSize(container.clientWidth, container.clientHeight);//设置渲染区域尺寸
       this.renderer.setClearColor(0xb9d3ff, 1); //设置背景颜色
+      this.renderer.domElement.id = 'canvas'
       container.appendChild(this.renderer.domElement);//body元素中插入canvas对象
 
       //辅助三维坐标系AxisHelper
@@ -74,7 +79,6 @@ export default {
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
             }
-            // child.userData.constructionStep = child.children.length
           })
           
           that.makeGui(that.childModelList[0].name)
@@ -104,11 +108,7 @@ export default {
       });
       that.guiData = {
         modelFileName: modelShowName,
-        // displayLines: true,
-        // conditionalLines: true,
-        // smoothNormals: true,
         constructionStep: 0
-        // mergeModel: false
       };
       if ( that.gui ) {
 					that.gui.destroy();
@@ -140,7 +140,6 @@ export default {
       that.mesh.children.forEach((it, idx) => {
         it.visible = (idx+1) <= that.guiData.constructionStep
       })
-      console.log(that.mesh.children)
       // that.mesh.traverse( c => {
       //   c.visible = c.userData.constructionStep <= guiData.constructionStep;
       // });
@@ -152,14 +151,81 @@ export default {
     // 创建控件对象
     createControls () {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-    }
+    },
+    exportHandler() {
+      let that = this
+      // 导出Excel
+      import('../../static/js/export2ExcelImg').then(excel => {
+        const tHeader = ['序号', '配件编号', '配件图示', '配件名称', '材料', '颜色', '用量']
+        const filterVal = ['idx', 'name', 'url', '', '', '', 'num']
+        const data = []
+        let i = 1 ;     
+        let flag = false
+        that.mesh.traverse( c => {
+          if(c.type === 'Mesh') {
+            flag = false
+            data.forEach(it => {
+              if( it.name === c.name) {
+                it.num += 1
+                flag = true
+              }
+            })
+            if(!flag){
+              data.push({ 'idx': i++, 'name': c.name, 'url': '' ,'num': 1 , 'uuid': c.uuid})
+            }
+          }
+        })
 
+        data.forEach((el, idx) => {
+          // that.scene.remove( that.mesh )
+          // that.mesh = el.mesh
+          // if (idx > 1) {
+          //   that.scene.remove( data[idx-1].mesh )
+          // }else{
+          //   // that.scene.remove( that.mesh )
+          // }
+          // that.scene.add( el.mesh )
+          // that.renderer.render(that.scene, that.camera);//执行渲染操作
+          that.traverseList(el.uuid)
+          that.renderer.render(that.scene, that.camera);//执行渲染操作
+          // 创建一个超链接元素，用来下载保存数据的文件
+          // var link = document.createElement('a');
+          // // 通过超链接herf属性，设置要保存到文件中的数据
+          var canvas = that.renderer.domElement;//获取canvas对象
+          // link.href = canvas.toDataURL("image/png");
+          // link.download = 'threejs'+idx+'.png'; //下载文件名
+          // link.click(); //js代码触发超链接元素a的鼠标点击事件，开始下载文件到本地
+          // el.url = canvas.toDataURL("image/png")
+          el.url = 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2801998497,4036145562&fm=27&gp=0.jpg'
+        })
+        console.log('data', data)
+        // excel.export_json_to_excel2( tHeader, data, filterVal, 'Untitled' )
+        excel.export2Excel(tHeader, data, 'Untitled')
+
+        that.traverseList('', true)
+      })
+    },
+    traverseList(uuid, visi = false) {
+      this.mesh.children.forEach(c => {
+        if(c.children.length > 0) {
+          this.traverseList(c.children);
+        }
+        if(c.type === 'Mesh') {
+          console.log('traverse', c.uuid , uuid, c.uuid === uuid)
+          if(c.uuid === uuid || visi){
+            c.visible = true
+            console.log('traverse', c.uuid , uuid)
+          }else{
+            c.visible = false
+          }
+        }
+      })
+    }
   },
   mounted() {
     this.init()
     this.model()
     this.render()
-    // this.makeGui()
     this.createControls()
   }
 }
