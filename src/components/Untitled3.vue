@@ -23,11 +23,22 @@ export default {
       gui: null,
       controls: null,
       childModelList: null,
+      progressBarDiv: null,
       guiData: {}
     }
   },
   methods: {
     init: function() {
+      this.progressBarDiv = document.createElement( 'div' );
+      this.progressBarDiv.innerText = 'Loading...';
+      this.progressBarDiv.style.fontSize = '3em';
+      this.progressBarDiv.style.color = '#888';
+      this.progressBarDiv.style.display = 'block';
+      this.progressBarDiv.style.position = 'absolute';
+      this.progressBarDiv.style.top = '50%';
+      this.progressBarDiv.style.width = '100%';
+      this.progressBarDiv.style.textAlign = 'center';
+
       //创建场景对象Scene
       this.scene = new THREE.Scene();
       let container = document.getElementById('container');
@@ -66,7 +77,8 @@ export default {
     model: function() {
       let that = this
       const loader = new GLTFLoader();
-      
+      that.updateProgressBar( 0 );
+      that.showProgressBar();
       loader.load(
         'static/gltf/Untitled.gltf',
         function ( gltf ) {
@@ -82,6 +94,7 @@ export default {
           })
           
           that.makeGui(that.childModelList[0].name)
+          that.hideProgressBar()
           // mesh.traverse(function (child) {
 	        // if (child.isMesh) {
 	        // 	//给模型下的Mesh添加材质颜色
@@ -92,6 +105,7 @@ export default {
         },
         // called while loading is progressing
         function ( xhr ) {
+          that.onProgress(xhr)
           console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
         },
         // called when loading has errors
@@ -220,6 +234,22 @@ export default {
           }
         }
       })
+    },
+    showProgressBar() {
+      document.body.appendChild( this.progressBarDiv );
+    },
+    hideProgressBar() {
+      document.body.removeChild( this.progressBarDiv );
+    },
+    updateProgressBar( fraction )  {
+      this.progressBarDiv.innerText = 'Loading... ' + Math.round( fraction * 100, 2 ) + '%';
+    },
+    onProgress( xhr ) {
+      console.log(xhr)
+      if ( xhr.lengthComputable ) {
+        updateProgressBar( xhr.loaded / xhr.total );
+        console.log( Math.round( xhr.loaded / xhr.total * 100, 2 ) + '% downloaded' );
+      }
     }
   },
   mounted() {
