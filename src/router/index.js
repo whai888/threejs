@@ -6,6 +6,7 @@ import Untitled2 from '@/components/Untitled2'
 import Glb7728 from '@/components/Glb7728'
 import FC1607 from '@/components/FC1607'
 import People from '@/components/People'
+import CameraHelper from '@/components/CameraHelper'
 
 Vue.use(Router)
 
@@ -40,6 +41,11 @@ export default new Router({
       path: '/People',
       name: 'People',
       component: People
+    },
+    {
+      path: '/CameraHelper',
+      name: 'CameraHelper',
+      component: CameraHelper
     }
   ]
 })

@@ -54,11 +54,11 @@ export default {
 
       // 添加灯光
       //点光源
-      var point = new THREE.PointLight(0xffffff);
+      var point = new THREE.PointLight(0x898989);
       point.position.set(400, 200, 300); //点光源位置
       this.scene.add(point); //点光源添加到场景中
-      const ambientLight = new THREE.AmbientLight(0x666666);
-      this.scene.add(ambientLight);
+      const ambientLight = new THREE.AmbientLight(0x8D073A);
+      // this.scene.add(ambientLight);
 
       //创建渲染器对象
       this.renderer = new THREE.WebGLRenderer({
@@ -66,7 +66,7 @@ export default {
         preserveDrawingBuffer: true  // 如果想保存three.js canvas画布上的信息，注意设置preserveDrawingBuffer
         });
       this.renderer.setSize(container.clientWidth, container.clientHeight);//设置渲染区域尺寸
-      this.renderer.setClearColor(0xb9d3ff, 1); //设置背景颜色
+      this.renderer.setClearColor(0x696969, 1); //设置背景颜色
       this.renderer.domElement.id = 'canvas'
       container.appendChild(this.renderer.domElement);//body元素中插入canvas对象
 
@@ -89,10 +89,10 @@ export default {
         'static/gltf/FC1607.glb',
         function ( gltf ) {
           that.mesh = gltf.scene
-          that.mesh.scale.set(3000, 3000, 3000) //设置模型大小
+          that.mesh.scale.set(1000, 1000, 1000) //设置模型大小
           console.log('that.mesh', that.mesh);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
-          that.mesh.name = '全部'
+          that.mesh.userData.name = '全部'
           that.childModelList = [that.mesh]
           that.mesh.traverse(function (child) {
             if(child.type === 'Object3D'){
@@ -102,16 +102,21 @@ export default {
             if (child.isMesh) {
 	        	//给模型下的Mesh添加材质颜色
               child.material.emissive =  child.material.color;
-              // child.material.emissiveMap = child.material.map ;
+              child.material.emissiveMap = child.material.map ;
+              if(child.userData.name === 'a1223-01'){
+                child.material.transparent = true
+                child.material.opacity = 0.3
+                console.log('a1223', child)
+              }
 	          }
           })
-          that.scene.add( that.mesh.children );
-          that.scene.updateMatrixWorld(true);
-          var worldPosition = new THREE.Vector3();
-          that.mesh.getWorldPosition(worldPosition);
-          console.log('世界坐标',worldPosition);
+          that.scene.add( that.mesh );
+          // that.scene.updateMatrixWorld(true);
+          // var worldPosition = new THREE.Vector3();
+          // that.mesh.getWorldPosition(worldPosition);
+          // console.log('世界坐标',worldPosition);
 
-          that.makeGui(that.childModelList[0].name)
+          that.makeGui(that.childModelList[0].userData.name)
           that.hideProgressBar()
           // mesh.traverse(function (child) {
 	        // if (child.isMesh) {
@@ -136,7 +141,7 @@ export default {
       let that = this
       let modelName = []
       this.childModelList.forEach(el => {
-        modelName.push(el.name)
+        modelName.push(el.userData.name)
       });
       that.guiData = {
         modelFileName: modelShowName,
@@ -162,10 +167,10 @@ export default {
       if ( that.mesh ) {
         that.scene.remove( that.mesh );
       }
-      that.mesh = that.childModelList.filter(it => it.name === that.guiData.modelFileName)[0]
+      that.mesh = that.childModelList.filter(it => it.userData.name === that.guiData.modelFileName)[0]
       that.scene.add( that.mesh );
-      that.mesh.scale.set(3000, 3000, 3000) //设置模型大小
-      that.makeGui(that.guiData.modelFileName)
+      that.mesh.scale.set(1000, 1000, 1000) //设置模型大小
+      // that.makeGui(that.guiData.modelFileName)
     },
     updateObjectsVisibility(){
       let that = this
@@ -188,8 +193,8 @@ export default {
       let that = this
       // 导出Excel
       import('../../static/js/export2ExcelImg').then(excel => {
-        const tHeader = ['序号', '配件编号', '配件图示', '配件名称', '材料', '颜色', '用量']
-        const filterVal = ['idx', 'name', 'url', '', '', '', 'num']
+        const tHeader = ['序号', '配件编号', '配件图示', '颜色', '用量']
+        const filterVal = ['idx', 'name', 'url', 'color', 'num']
         const data = []
         let i = 1 ;     
         let flag = false
@@ -203,7 +208,7 @@ export default {
               }
             })
             if(!flag){
-              data.push({ 'idx': i++, 'name': c.name, 'url': '' ,'num': 1 , 'uuid': c.uuid})
+              data.push({ 'idx': i++, 'name': c.name, 'url': '' , 'color': 'rgb('+c.material.color.r*100+','+c.material.color.g*100+','+c.material.color.b*100+')' ,'num': 1})
             }
           }
         })
@@ -218,17 +223,17 @@ export default {
           // }
           // that.scene.add( el.mesh )
           // that.renderer.render(that.scene, that.camera);//执行渲染操作
-          that.traverseList(el.uuid)
-          that.renderer.render(that.scene, that.camera);//执行渲染操作
+          // that.traverseList(el.uuid)
+          // that.renderer.render(that.scene, that.camera);//执行渲染操作
           // 创建一个超链接元素，用来下载保存数据的文件
           // var link = document.createElement('a');
           // // 通过超链接herf属性，设置要保存到文件中的数据
-          var canvas = that.renderer.domElement;//获取canvas对象
+          // var canvas = that.renderer.domElement;//获取canvas对象
           // link.href = canvas.toDataURL("image/png");
           // link.download = 'threejs'+idx+'.png'; //下载文件名
           // link.click(); //js代码触发超链接元素a的鼠标点击事件，开始下载文件到本地
           // el.url = canvas.toDataURL("image/png")
-          el.url = 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2801998497,4036145562&fm=27&gp=0.jpg'
+          el.url = ''
         })
         console.log('data', data)
         // excel.export_json_to_excel2( tHeader, data, filterVal, 'Untitled' )
