@@ -1,7 +1,19 @@
 <template>
   <div>
-    <button @click="exportHandler">导出</button>
+    <button @click="exportHtmlData">导出</button>
     <div id="container"></div>
+    <div>
+      <table>
+        <tr>
+          <th>序号</th><th>配件编号</th><th>配件图片</th><th>配件颜色</th><th>数量</th>
+        </tr>
+        <tr v-for="item in htmlData" :key="item.idx">
+          <th>{{item.idx}}</th><th>{{item.name}}</th><th>
+            <img :src="item.url" style="width:100px"/>
+            </th><th>{{item.color}}</th><th>{{item.num}}</th>
+        </tr>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -25,7 +37,8 @@ export default {
       controls: null,
       childModelList: null,
       progressBarDiv: null,
-      guiData: {}
+      guiData: {},
+      htmlData: null
     }
   },
   methods: {
@@ -93,12 +106,13 @@ export default {
           console.log('that.mesh', that.mesh);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
           that.mesh.userData.name = '全部'
-          that.childModelList = [that.mesh]
+          that.childModelList = []
+          // that.childModelList = []
           that.mesh.traverse(function (child) {
-            if(child.type === 'Object3D'){
+            // if(child.type === 'Object3D'){
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
-            }
+            // }
             if (child.isMesh) {
 	        	//给模型下的Mesh添加材质颜色
               child.material.emissive =  child.material.color;
@@ -143,6 +157,7 @@ export default {
       this.childModelList.forEach(el => {
         modelName.push(el.userData.name)
       });
+      console.log('modelName', modelName)
       that.guiData = {
         modelFileName: modelShowName,
         constructionStep: 0
@@ -169,8 +184,12 @@ export default {
       }
       that.mesh = that.childModelList.filter(it => it.userData.name === that.guiData.modelFileName)[0]
       that.scene.add( that.mesh );
-      that.mesh.scale.set(1000, 1000, 1000) //设置模型大小
-      // that.makeGui(that.guiData.modelFileName)
+      if(that.guiData.modelFileName === '全部'){
+        that.mesh.scale.set(1000, 1000, 1000) //设置模型大小
+      }else{
+        that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
+      }
+      that.makeGui(that.guiData.modelFileName)
     },
     updateObjectsVisibility(){
       let that = this
@@ -208,32 +227,31 @@ export default {
               }
             })
             if(!flag){
-              data.push({ 'idx': i++, 'name': c.name, 'url': '' , 'color': 'rgb('+c.material.color.r*100+','+c.material.color.g*100+','+c.material.color.b*100+')' ,'num': 1})
+              data.push({ 'idx': i++, 'name': c.name, 'url': '' , 'color': c.material.name ,'num': 1})
             }
           }
         })
 
         data.forEach((el, idx) => {
-          // that.scene.remove( that.mesh )
-          // that.mesh = el.mesh
-          // if (idx > 1) {
-          //   that.scene.remove( data[idx-1].mesh )
-          // }else{
-          //   // that.scene.remove( that.mesh )
-          // }
-          // that.scene.add( el.mesh )
-          // that.renderer.render(that.scene, that.camera);//执行渲染操作
-          // that.traverseList(el.uuid)
+          that.scene.remove( that.mesh )
+          that.mesh = el.mesh
+          if (idx > 1) {
+            that.scene.remove( data[idx-1].mesh )
+          }else{
+            // that.scene.remove( that.mesh )
+          }
+          that.scene.add( el.mesh )
+          that.renderer.render(that.scene, that.camera);//执行渲染操作
+          that.traverseList(el.uuid)
           // that.renderer.render(that.scene, that.camera);//执行渲染操作
           // 创建一个超链接元素，用来下载保存数据的文件
           // var link = document.createElement('a');
           // // 通过超链接herf属性，设置要保存到文件中的数据
-          // var canvas = that.renderer.domElement;//获取canvas对象
+          var canvas = that.renderer.domElement;//获取canvas对象
           // link.href = canvas.toDataURL("image/png");
           // link.download = 'threejs'+idx+'.png'; //下载文件名
           // link.click(); //js代码触发超链接元素a的鼠标点击事件，开始下载文件到本地
-          // el.url = canvas.toDataURL("image/png")
-          el.url = ''
+          el.url = canvas.toDataURL("image/png")
         })
         console.log('data', data)
         // excel.export_json_to_excel2( tHeader, data, filterVal, 'Untitled' )
@@ -241,6 +259,45 @@ export default {
 
         that.traverseList('', true)
       })
+    },
+    exportHtmlData() {
+      let that = this
+      that.htmlData = []
+      let meshTemp = []
+      let i = 1 ;     
+      let flag = false
+      const meshClone = that.mesh.clone(true)
+      if(meshClone.children.length === 0) {
+        that.renderer.render(that.scene, that.camera);//执行渲染操作
+        var canvas = that.renderer.domElement;//获取canvas对象
+        that.htmlData.push({ 'idx': i++, 'name': meshClone.name, 'url': canvas.toDataURL("image/png") , 'color': meshClone.material.name ,'num': 1})
+      }else{
+        meshClone.children.forEach(c => {
+          if(c.type === 'Mesh') {
+            flag = false
+            that.htmlData.forEach(it => {
+              if( it.name === c.name) {
+                it.num += 1
+                flag = true
+              }
+            })
+            meshTemp.push(c)
+            that.scene.remove( that.mesh )
+            that.mesh = that.childModelList.filter(it => it.userData.name === c.userData.name)[0]
+            that.scene.add( that.mesh );
+            that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
+
+            that.renderer.render(that.scene, that.camera);//执行渲染操作
+            var canvas = that.renderer.domElement;//获取canvas对象
+            if(!flag){
+              that.htmlData.push({ 'idx': i++, 'name': c.name, 'url': canvas.toDataURL("image/png") , 'color': c.material.name ,'num': 1})
+            }
+          }
+        })
+        that.childModelList.filter(it => it.userData.name === '全部')[0].children = meshTemp
+        that.reloadObject(true)
+      }
+      console.log('htmlData', that.htmlData)
     },
     traverseList(uuid, visi = false) {
       this.mesh.children.forEach(c => {
