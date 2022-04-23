@@ -23,6 +23,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js'
 // import { LDrawUtils } from 'three/examples/jsm/utils/LDrawUtils.js'
+import meshto from '../../static/json/meshto.json'
 
 
 export default {
@@ -94,11 +95,11 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       lDrawLoader.load(
-        'static/mpd/demo.ldr_Packed.mpd',
+        'static/mpd/JX80038.ldr_Packed.mpd',
         function ( gltf ) {
           that.mesh = gltf
           // that.mesh.scale.set(100, 100, 100) //设置模型大小
-          console.log('that.mesh', that.mesh);
+          console.log('that.mesh12', gltf);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
           that.mesh.name = '全部'
           that.childModelList = []
@@ -312,8 +313,57 @@ export default {
         console.log( Math.round( xhr.loaded / xhr.total * 100, 2 ) + '% downloaded' );
       }
     },
-    exportRepalce() {
+   exportRepalce() {
+      let that = this
+      let meshData = []
+      that.mesh.traverse( c => {
+        let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
+        if(data.length === 1) {
+          data[0].positionx = c.position.x
+          data[0].positiony = c.position.y
+          data[0].positionz = c.position.z
+          meshData.push(data[0])
+        }
+      });
+      console.log(111, JSON.stringify(meshData))
       
+      var group = new THREE.Group();
+      meshData.forEach(async it => {
+        let obj = await that.loadJson(it.val)
+        if('obj' !== 'false') {
+          obj.position.x = it.positionx / 1000
+          obj.position.y = it.positiony / 1000
+          obj.position.z = it.positionz / 1000
+          group.add( obj )
+        }
+      })
+      console.log(group)
+
+      that.scene.remove( that.mesh )
+      that.mesh = group
+      that.scene.add( that.mesh );
+      that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
+      that.renderer.render(that.scene, that.camera);//执行渲染操作
+
+    },
+    async loadJson(name) {
+      return new Promise((resolve, reject) => { 
+        try {
+          const loader = new THREE.ObjectLoader();
+          loader.loadAsync( 'static/json/' + name + '.json')
+            .then((res)=>{
+              console.log(222222)
+              resolve(res)
+            })
+            .catch((e) =>{
+              console.log(33333, e, name)
+              reject('false')
+            })
+          } catch (e) {
+            console.log(33333, 4)
+						reject('false')
+					}
+      })
     }
   },
   mounted() {

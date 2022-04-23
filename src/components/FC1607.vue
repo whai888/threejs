@@ -99,15 +99,21 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       loader.load(
-        'static/gltf/FC1607.glb',
+        'static/gltf/JX80038menglong.glb',
         function ( gltf ) {
           that.mesh = gltf.scene
-          that.mesh.scale.set(1000, 1000, 1000) //设置模型大小
+          that.mesh.scale.set(100, 100, 100) //设置模型大小
           console.log('that.mesh', that.mesh);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
           that.mesh.userData.name = '全部'
           that.childModelList = []
           // that.childModelList = []
+          let i = 0
+          that.mesh.children.forEach(it => {
+            console.log('that.child' + i++, it);
+            that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
+            that.sleep(2000)
+          })
           that.mesh.traverse(function (child) {
             // if(child.type === 'Object3D'){
               child.userData.numConstructionSteps = child.children.length
@@ -330,6 +336,21 @@ export default {
         this.updateProgressBar( xhr.loaded / xhr.total );
         console.log( Math.round( xhr.loaded / xhr.total * 100, 2 ) + '% downloaded' );
       }
+    },
+    download_txt(filename, text) {
+      var pom = document.createElement('a');
+      pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      pom.setAttribute('download', filename);
+      if (document.createEvent) {
+          var event = document.createEvent('MouseEvents');
+          event.initEvent('click', true, true);
+          pom.dispatchEvent(event);
+      } else {
+          pom.click();
+      }
+    },
+    sleep(d){
+      for(var t = Date.now();Date.now() - t <= d;);
     }
   },
   mounted() {
