@@ -111,8 +111,8 @@ export default {
           let i = 0
           that.mesh.children.forEach(it => {
             console.log('that.child' + i++, it);
-            that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
-            that.sleep(2000)
+            // that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
+            // that.sleep(2000)
           })
           that.mesh.traverse(function (child) {
             // if(child.type === 'Object3D'){

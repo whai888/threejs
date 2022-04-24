@@ -1,6 +1,7 @@
 <template>
   <div>
     <button @click="exportHtmlData">导出</button>
+    <button @click="exportObj">导出Obj</button>
     <button @click="exportRepalce">替换</button>
     <div id="container"></div>
     <div>
@@ -20,6 +21,7 @@
 <script>
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js'
 // import { LDrawUtils } from 'three/examples/jsm/utils/LDrawUtils.js'
@@ -60,7 +62,7 @@ export default {
       //相机
       this.camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 1, 10000);
       // this.camera.position.y = 100;
-       this.camera.position.set(150, 200, 250 );//设置相机位置
+       this.camera.position.set(100, 200, 250 );//设置相机位置
       this.camera.lookAt(this.scene.position); //设置相机方向(指向的场景对象)
       const helper = new THREE.CameraHelper( this.camera );
       // this.scene.add( helper );
@@ -85,7 +87,7 @@ export default {
       container.appendChild(this.renderer.domElement);//body元素中插入canvas对象
 
       //辅助三维坐标系AxisHelper
-      // const axisHelper = new THREE.AxisHelper(2500);
+      const axisHelper = new THREE.AxisHelper(100);
       // this.scene.add(axisHelper);
 
     },
@@ -95,7 +97,8 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       lDrawLoader.load(
-        'static/mpd/JX80038.ldr_Packed.mpd',
+        'static/mpd/JX80038猛龙.ldr_Packed.mpd',
+        // 'static/mpd/car.ldr_Packed.mpd',
         function ( gltf ) {
           that.mesh = gltf
           // that.mesh.scale.set(100, 100, 100) //设置模型大小
@@ -104,12 +107,26 @@ export default {
           that.mesh.name = '全部'
           that.childModelList = []
           that.mesh.traverse(function (child) {
+            // child.position.x = 0
+            // child.position.y = 0
+            // child.position.z = 0
             if(child.type === 'Group'){
               child.userData.name = child.name
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
             }
           })
+
+        // that.camera.aspect = window.innerWidth / window.innerHeight;
+				// that.camera.updateProjectionMatrix();
+        // that.renderer.setSize( window.innerWidth, window.innerHeight );
+
+        // Adjust camera and light
+          that.mesh.rotation.x = Math.PI;
+          that.controlsReset()
+            
+
+          // that.mesh.rotation.x = Math.PI;
           that.scene.add( that.mesh );
 
           that.makeGui(that.childModelList[0].userData.name)
@@ -313,57 +330,109 @@ export default {
         console.log( Math.round( xhr.loaded / xhr.total * 100, 2 ) + '% downloaded' );
       }
     },
-   exportRepalce() {
+   async exportRepalce() {
       let that = this
-      let meshData = []
-      that.mesh.traverse( c => {
+      // let meshData = []
+      // that.mesh.traverse( c => {
+      //   let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
+      //   if(data.length === 1) {
+      //     data[0].position = new THREE.Vector3(c.position.x, c.position.y, c.position.z )
+      //     data[0].quaternion = c.quaternion
+      //     data[0].scale = c.scale
+      //     // meshData.push(data[0])
+      //     meshData.push(c)
+      //   }
+      // });
+      console.log(111, that.mesh)
+      let i= 0 ;
+      that.mesh.children[0].children.forEach(c => {
         let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
+        c.children = []
         if(data.length === 1) {
-          data[0].positionx = c.position.x
-          data[0].positiony = c.position.y
-          data[0].positionz = c.position.z
-          meshData.push(data[0])
-        }
-      });
-      console.log(111, JSON.stringify(meshData))
-      
-      var group = new THREE.Group();
-      meshData.forEach(async it => {
-        let obj = await that.loadJson(it.val)
-        if('obj' !== 'false') {
-          obj.position.x = it.positionx / 1000
-          obj.position.y = it.positiony / 1000
-          obj.position.z = it.positionz / 1000
-          group.add( obj )
+          c.name = data[0].val
+          that.loadJson(data[0].val).then(res =>{
+            if(res !== 'false'){
+              console.log(i++, c.name, data, res)
+              c.children[0] = res
+            }
+          })
         }
       })
-      console.log(group)
 
-      that.scene.remove( that.mesh )
-      that.mesh = group
-      that.scene.add( that.mesh );
-      that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
-      that.renderer.render(that.scene, that.camera);//执行渲染操作
+      // var group = new THREE.Group();
+      // that.mesh.children = []
+      // let i = 0
+      // let res = await Promise.all(meshData.map(async it => [await that.loadJson(it), it]))
+      // res.forEach(([obj, c]) => {
+      //   if(obj !== 'false') {
+      //    var groupData = new THREE.Group();
+      //     groupData.position.x = c.position.x
+      //     groupData.position.y = c.position.y
+      //     groupData.position.z = c.position.z
+      //     groupData.name = obj.name
+      //     // // groupData.quaternion = c.quaternion
+      //     // groupData.scale.x = c.scale.x
+      //     // groupData.scale.y = c.scale.y
+      //     // groupData.scale.z = c.scale.z
+      //     groupData.add(obj)
+      //     group.add( groupData )
+      //   }
+      // })
+      console.log('meshData', that.mesh.children[0].children)
+
+      // that.scene.remove( that.mesh )
+      // that.mesh = meshData
+      // that.scene.add( that.mesh );
+      // that.controlsReset()
+      // that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
+      // that.renderer.render(that.scene, that.camera);//执行渲染操作
 
     },
-    async loadJson(name) {
-      return new Promise((resolve, reject) => { 
+    loadJson(name) {
+      return new Promise((resolve, reject) => {
         try {
           const loader = new THREE.ObjectLoader();
           loader.loadAsync( 'static/json/' + name + '.json')
             .then((res)=>{
-              console.log(222222)
+              res.name = name
               resolve(res)
             })
             .catch((e) =>{
-              console.log(33333, e, name)
-              reject('false')
+              console.log(33333, name)
+              resolve('false', e)
             })
           } catch (e) {
             console.log(33333, 4)
-						reject('false')
+						resolve('false')
 					}
       })
+    },
+    controlsReset() {
+      let that = this
+      const bbox = new THREE.Box3().setFromObject( that.mesh );
+      const size = bbox.getSize( new THREE.Vector3() );
+      const radius = Math.max( size.x, Math.max( size.y, size.z ) ) * 0.5;
+      if ( true ) {
+        that.controls.target0.copy( bbox.getCenter( new THREE.Vector3() ) );
+        that.controls.position0.set( - 2.3, 1, 2 ).multiplyScalar( radius ).add( that.controls.target0 );
+        that.controls.reset();
+      }
+    },
+    exportObj(){
+      const exporter = new OBJExporter();
+      const result = exporter.parse( this.mesh );
+      this.saveString( result, 'JX80038猛龙.obj' );
+    },
+    saveString( text, filename ) {
+      this.save( new Blob( [ text ], { type: 'text/plain' } ), filename );
+    },
+    save( blob, filename ) {
+      const link = document.createElement( 'a' );
+			link.style.display = 'none';
+			document.body.appendChild( link );
+      link.href = URL.createObjectURL( blob );
+      link.download = filename;
+      link.click();
     }
   },
   mounted() {
