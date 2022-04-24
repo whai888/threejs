@@ -1,8 +1,6 @@
 <template>
   <div>
     <button @click="exportHtmlData">导出</button>
-    <button @click="exportObj">导出Obj</button>
-    <button @click="exportRepalce">替换</button>
     <div id="container"></div>
     <div>
       <table>
@@ -18,18 +16,17 @@
     </div>
   </div>
 </template>
+
 <script>
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
-import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js'
-// import { LDrawUtils } from 'three/examples/jsm/utils/LDrawUtils.js'
-import meshto from '../../static/json/meshto.json'
 
 
 export default {
-  name: 'Demo',
+  name: 'Json',
   data () {
     return {
       camera: null,
@@ -62,7 +59,7 @@ export default {
       //相机
       this.camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 1, 10000);
       // this.camera.position.y = 100;
-       this.camera.position.set(100, 200, 250 );//设置相机位置
+       this.camera.position.set(292, 109, 268);//设置相机位置
       this.camera.lookAt(this.scene.position); //设置相机方向(指向的场景对象)
       const helper = new THREE.CameraHelper( this.camera );
       // this.scene.add( helper );
@@ -74,7 +71,7 @@ export default {
       point.position.set(400, 200, 300); //点光源位置
       this.scene.add(point); //点光源添加到场景中
       const ambientLight = new THREE.AmbientLight(0x8D073A);
-      this.scene.add(ambientLight);
+      // this.scene.add(ambientLight);
 
       //创建渲染器对象
       this.renderer = new THREE.WebGLRenderer({
@@ -87,47 +84,57 @@ export default {
       container.appendChild(this.renderer.domElement);//body元素中插入canvas对象
 
       //辅助三维坐标系AxisHelper
-      const axisHelper = new THREE.AxisHelper(100);
-      this.scene.add(axisHelper);
+      // const axisHelper = new THREE.AxisHelper(2500);
+      // this.scene.add(axisHelper);
 
     },
     model: function() {
       let that = this
-      const lDrawLoader = new LDrawLoader()
+      const loader = new GLTFLoader()
+      let dracoLoader = new DRACOLoader()
+      dracoLoader.setDecoderPath("static/gltf/draco/gltf/")
+      dracoLoader.setDecoderConfig({ type: "js" })
+      dracoLoader.preload()
+      loader.setDRACOLoader(dracoLoader)
       that.updateProgressBar( 0 );
       that.showProgressBar();
-      lDrawLoader.load(
-        'static/mpd/JX80038猛龙.ldr_Packed.mpd',
-        // 'static/mpd/car.ldr_Packed.mpd',
+      loader.load(
+        'static/gltf/JX80038menglong.glb',
         function ( gltf ) {
-          that.mesh = gltf.children[0]
-          // that.mesh.scale.set(100, 100, 100) //设置模型大小
-          console.log('that.mesh12', gltf);
+          that.mesh = gltf.scene
+          that.mesh.scale.set(100, 100, 100) //设置模型大小
+          console.log('that.mesh', that.mesh);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
-          that.mesh.name = '全部'
+          that.mesh.userData.name = '全部'
           that.childModelList = []
+          // that.childModelList = []
+          let i = 0
+          that.mesh.children.forEach(it => {
+            console.log('that.child' + i++, it);
+            // that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
+            // that.sleep(2000)
+          })
           that.mesh.traverse(function (child) {
-            // child.position.x = 0
-            // child.position.y = 0
-            // child.position.z = 0
-            if(child.type === 'Group'){
-              child.userData.name = child.name
+            // if(child.type === 'Object3D'){
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
-            }
+            // }
+            if (child.isMesh) {
+	        	//给模型下的Mesh添加材质颜色
+              child.material.emissive =  child.material.color;
+              child.material.emissiveMap = child.material.map ;
+              if(child.userData.name === 'a1223-01'){
+                child.material.transparent = true
+                child.material.opacity = 0.3
+                console.log('a1223', child)
+              }
+	          }
           })
-
-        // that.camera.aspect = window.innerWidth / window.innerHeight;
-				// that.camera.updateProjectionMatrix();
-        // that.renderer.setSize( window.innerWidth, window.innerHeight );
-
-        // Adjust camera and light
-          that.mesh.rotation.x = Math.PI;
-          that.controlsReset()
-            
-
-          // that.mesh.rotation.x = Math.PI;
           that.scene.add( that.mesh );
+          // that.scene.updateMatrixWorld(true);
+          // var worldPosition = new THREE.Vector3();
+          // that.mesh.getWorldPosition(worldPosition);
+          // console.log('世界坐标',worldPosition);
 
           that.makeGui(that.childModelList[0].userData.name)
           that.hideProgressBar()
@@ -330,137 +337,17 @@ export default {
         console.log( Math.round( xhr.loaded / xhr.total * 100, 2 ) + '% downloaded' );
       }
     },
-  async exportRepalce() {
-      let that = this
-      let meshData = []
-      // var group = new THREE.Group();
-      that.mesh.children.forEach( async (c, idx) => {        
-        let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
-        if(data.length === 1) {
-          c.name = data[0].val
-          let obj = await that.loadJson(data[0].val)
-          console.log(obj)
-          // c.clear()
-          c.add(obj)
-          console.log(c)
-          c.children.forEach((k, idx) => {
-            if(k.name != obj.name) {
-              c.children[idx].visible = false
-            }else{
-              obj.scale.set(3000, 3000, 3000)
-            }
-          })
-          meshData.push(c)
-        }else{
-          c.children = []
-        }
-      });
-      // this.sleep(2000)
-      // console.log(111, group)
-      // let res = await Promise.all(meshData.map(async it => [await that.loadJson(it.name), it]))
-      // let i= 0 ;
-      // var group = new THREE.Group();
-      // res.forEach(([obj, c]) => {
-      //   if(obj !== 'false') {
-      //     var groupData = new THREE.Group();
-      //     c.children = []
-      //     obj.parent = c
-      //     c.children[0] = obj
-      //     groupData.add( obj )
-      //     group.add( groupData )
-      //   }
-      // })
-      
-      // console.log('children', that.mesh)
-      // that.mesh.children.forEach(async c => {
-      //   let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
-      //   c.children = []
-      //   if(data.length === 1) {
-      //     let obj = await that.loadJson(data[0].val)
-      //     console.log('obj', obj)
-      //     if(obj !== 'false') {
-      //       obj.parent = c
-      //       c.children[0] = obj
-      //     }
-      //   }
-      // })
-
-
-      // var group = new THREE.Group();
-      // let i = 0
-      // let res = await Promise.all(meshData.map(async it => [await that.loadJson(it.name), it]))
-      // res.forEach(([obj, c]) => {
-      //   if(obj !== 'false') {
-      //    var groupData = new THREE.Group();
-      //     groupData.position.x = c.position.x
-      //     groupData.position.y = c.position.y
-      //     groupData.position.z = c.position.z
-      //     groupData.name = obj.name
-      //     // groupData.quaternion = c.quaternion
-      //     groupData.scale.x = c.scale.x
-      //     groupData.scale.y = c.scale.y
-      //     groupData.scale.z = c.scale.z
-      //     groupData.add(c)
-      //     // groupData.parent = that.mesh
-      //     group.add( groupData )
-      //   }
-      // })
-      // that.mesh.children = group.children
-      // console.log('meshData', group)
-      // console.log('that.mesh', that.mesh)
-      // that.scene.remove( that.mesh )
-      // that.mesh = group
-      // that.scene.add( that.mesh );
-      // that.controlsReset()
-      // that.mesh.scale.set(7000, 7000, 7000) //设置模型大小
-      // that.renderer.render(that.scene, that.camera);//执行渲染操作
-
-    },
-    loadJson(name) {
-      return new Promise((resolve, reject) => {
-        try {
-          const loader = new THREE.ObjectLoader();
-          loader.loadAsync( 'static/json/' + name + '.json')
-            .then((res)=>{
-              resolve(res)
-              console.log(22222, res)
-            })
-            .catch((e) =>{
-              console.log(33333, name, e)
-              resolve('false', e)
-            })
-          } catch (e) {
-            console.log(33333, 4)
-						resolve('false')
-					}
-      })
-    },
-    controlsReset() {
-      let that = this
-      const bbox = new THREE.Box3().setFromObject( that.mesh );
-      const size = bbox.getSize( new THREE.Vector3() );
-      const radius = Math.max( size.x, Math.max( size.y, size.z ) ) * 0.5;
-      if ( true ) {
-        that.controls.target0.copy( bbox.getCenter( new THREE.Vector3() ) );
-        that.controls.position0.set( - 2.3, 1, 2 ).multiplyScalar( radius ).add( that.controls.target0 );
-        that.controls.reset();
+    download_txt(filename, text) {
+      var pom = document.createElement('a');
+      pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      pom.setAttribute('download', filename);
+      if (document.createEvent) {
+          var event = document.createEvent('MouseEvents');
+          event.initEvent('click', true, true);
+          pom.dispatchEvent(event);
+      } else {
+          pom.click();
       }
-    },
-    exportObj(){
-      const exporter = new OBJExporter();
-      const result = exporter.parse( this.mesh );
-      this.saveString( result, 'JX80038猛龙.obj' );
-    },
-    saveString( text, filename ) {
-      this.save( new Blob( [ text ], { type: 'text/plain' } ), filename );
-    },
-    save( blob, filename ) {
-      const link = document.createElement( 'a' );
-			link.style.display = 'none';
-			document.body.appendChild( link );
-      link.href = URL.createObjectURL( blob );
-      link.download = filename;
-      link.click();
     },
     sleep(d){
       for(var t = Date.now();Date.now() - t <= d;);

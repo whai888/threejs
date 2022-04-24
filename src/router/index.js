@@ -7,6 +7,7 @@ import Glb7728 from '@/components/Glb7728'
 import FC1607 from '@/components/FC1607'
 import People from '@/components/People'
 import Demo from '@/components/Demo'
+import Json from '@/components/json'
 import CameraHelper from '@/components/CameraHelper'
 
 Vue.use(Router)
@@ -52,6 +53,11 @@ export default new Router({
       path: '/demo.mpd',
       name: 'Demo',
       component: Demo
+    },
+    {
+      path: '/json',
+      name: 'Json',
+      component: Json
     }
   ]
 })
