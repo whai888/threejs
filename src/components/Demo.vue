@@ -25,6 +25,7 @@ import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader.js'
 // import { LDrawUtils } from 'three/examples/jsm/utils/LDrawUtils.js'
+import { uuid } from 'vue-uuid';
 import meshto from '../../static/json/meshto.json'
 
 
@@ -333,16 +334,25 @@ export default {
   async exportRepalce() {
       let that = this
       let meshData = []
+      that.mesh.matrixAutoUpdate = false 
       // var group = new THREE.Group();
-      that.mesh.children.forEach( async (c, idx) => {        
+      that.mesh.children.forEach( async (c, idx) => {     
         let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
         if(data.length === 1) {
-          c.name = data[0].val
           let obj = await that.loadJson(data[0].val)
-          console.log(obj)
+          console.log(c.name, data[0].val, obj)
+          c.name = data[0].val + '-' + idx
           // c.clear()
-          c.add(obj)
-          console.log(c)
+          // obj.rotation = c.rotation
+          console.log(c.children[0].quaternion, c.children[0].rotation.x, c.rotation.x, c.rotation.y, c.rotation.z)
+          // obj.setMatrixWorld(c.children[0].matrixWorld)
+          console.log(that.mesh.rotation, c.rotation, data[0].val )   
+          // obj.matrixWorld.multiplyMatrices(c.parent.matrixWorld, c.matrix)
+          // obj.name = obj.name + 'idx'
+          if(obj !== 'false'){
+            obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
+            c.add(obj)
+          }
           c.children.forEach((k, idx) => {
             if(k.name != obj.name) {
               c.children[idx].visible = false
@@ -417,11 +427,13 @@ export default {
 
     },
     loadJson(name) {
+      let that = this
       return new Promise((resolve, reject) => {
         try {
           const loader = new THREE.ObjectLoader();
           loader.loadAsync( 'static/json/' + name + '.json')
             .then((res)=>{
+              res.uuid = uuid.v1()
               resolve(res)
               console.log(22222, res)
             })
