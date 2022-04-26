@@ -339,27 +339,41 @@ export default {
       that.mesh.children.forEach( async (c, idx) => {     
         let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
         if(data.length === 1) {
-          let obj = await that.loadJson(data[0].val)
           console.log(c.name, data[0].val, obj)
           c.name = data[0].val + '-' + idx
-          // c.clear()
-          // obj.rotation = c.rotation
-          console.log(c.children[0].quaternion, c.children[0].rotation.x, c.rotation.x, c.rotation.y, c.rotation.z)
-          // obj.setMatrixWorld(c.children[0].matrixWorld)
-          console.log(that.mesh.rotation, c.rotation, data[0].val )   
-          // obj.matrixWorld.multiplyMatrices(c.parent.matrixWorld, c.matrix)
-          // obj.name = obj.name + 'idx'
+          let obj = await that.loadJson(data[0].val)
           if(obj !== 'false'){
-            obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
+            // mesh2.position.set(600,0,0);
+            // console.log('center', center)
+            // obj.geometry.computeBoundingBox();
+            // obj.geometry.boundingBox.setFromCenterAndSize(center, centerSize)
+            // obj.position.set(center.x, center.y, center.z);
+            // obj.attach(c.children[0])
+            c.name = data[0].val + '-' + idx
+            obj.scale.set(3000, 3000, 3000)
+            // c.copy(obj)
+            // obj.setRotationFromQuaternion(c.parent.quaternion)
+            // obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
             c.add(obj)
-          }
+
+            // let center = new THREE.Vector3();
           c.children.forEach((k, idx) => {
-            if(k.name != obj.name) {
-              c.children[idx].visible = false
+            if(k.name === obj.name) {
+              // let boxHelper = new THREE.BoxHelper(k, 0xff0000 );
+              
+              // let center = new THREE.Vector3();
+              // c.children[0].geometry.computeBoundingBox();
+              // c.children[0].geometry.boundingBox.getCenter(center)
+              // console.log('center', center)
+              // k.position.set(center.x, center.y, center.z);
             }else{
-              obj.scale.set(3000, 3000, 3000)
+              k.visible = false
             }
+            // }
           })
+
+          }
+          
           meshData.push(c)
         }else{
           c.children = []
@@ -435,14 +449,11 @@ export default {
             .then((res)=>{
               res.uuid = uuid.v1()
               resolve(res)
-              console.log(22222, res)
             })
             .catch((e) =>{
-              console.log(33333, name, e)
               resolve('false', e)
             })
           } catch (e) {
-            console.log(33333, 4)
 						resolve('false')
 					}
       })
