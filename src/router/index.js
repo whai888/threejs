@@ -8,6 +8,7 @@ import FC1607 from '@/components/FC1607'
 import People from '@/components/People'
 import Demo from '@/components/Demo'
 import Json from '@/components/json'
+import Yanz from '@/components/yanz'
 import CameraHelper from '@/components/CameraHelper'
 
 Vue.use(Router)
@@ -58,6 +59,11 @@ export default new Router({
       path: '/json',
       name: 'Json',
       component: Json
+    },
+    {
+      path: '/yanz',
+      name: 'Yanz',
+      component: Yanz
     }
   ]
 })

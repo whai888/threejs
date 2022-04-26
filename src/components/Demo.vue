@@ -354,13 +354,16 @@ export default {
             // c.copy(obj)
             // obj.setRotationFromQuaternion(c.parent.quaternion)
             // obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
-            c.add(obj)
+            // c.add(obj)
 
             // let center = new THREE.Vector3();
           c.children.forEach((k, idx) => {
-            if(k.name === obj.name) {
+            
+            if(k.isMesh) {
+              k.geometry.merge(obj.geometry)
               // let boxHelper = new THREE.BoxHelper(k, 0xff0000 );
-              
+              // boxHelper.applyMatrix4( k.matrix );
+              // c.add(boxHelper)
               // let center = new THREE.Vector3();
               // c.children[0].geometry.computeBoundingBox();
               // c.children[0].geometry.boundingBox.getCenter(center)
