@@ -1,5 +1,6 @@
 <template>
   <div>
+    <button @click="change">转换</button>
     <div id="container"></div>
   </div>
 </template>
@@ -59,42 +60,77 @@ export default {
     },
     async model() {
       const loader = new THREE.ObjectLoader()
-      const object = await loader.loadAsync( 'static/json/A157.json' )
-      console.log('object', object)
-      object.scale.set(5000, 5000, 5000) //设置模型大小
-
-      const box = new THREE.BoxHelper( object );
-      // scene.add( object );
-      // box.applyMatrix4( object.matrix );
-      // scene.add( cube );
+      const A157 = await loader.loadAsync( 'static/json/87994.json' )
+      const a157Group = new THREE.Group()
+      // A157.scale.set(5000, 5000, 5000) //设置模型大小
+      var center = new THREE.Vector3()
+      var centerSize = new THREE.Vector3()
+      A157.children[0].geometry.computeBoundingBox()
+      A157.children[0].geometry.boundingBox.getCenter(center)
+      A157.children[0].geometry.boundingBox.getSize(centerSize)
+      console.log(center)
+      console.log('1', A157.rotation, centerSize)
+      const a157Box = new THREE.BoxHelper( A157 );
+      a157Group.add(A157)
+      a157Group.add(a157Box)
       
-      let center = new THREE.Vector3();
-      let centerSize = new THREE.Vector3();
-      object.geometry.computeBoundingBox()
-      object.geometry.boundingBox.getCenter(center)
-      object.geometry.boundingBox.getSize(centerSize)
-      console.log('center', center)
+      
 
+      const a157AxesHelper = new THREE.AxesHelper( 50 );
+      a157Group.add(a157AxesHelper)
+      this.scene.add(a157Group)
 
-      const object1= await loader.loadAsync( 'static/json/A036.json' )
-      console.log('object', object)
-      object1.scale.set(5000, 5000, 5000) //设置模型大小
-// object.geometry.merge(object1.geometry)
-      this.scene.add( object )
+      const A036 = await loader.loadAsync( 'static/json/A036.json' )
+      A157.add(A036)
+      const a036Group = new THREE.Group()
+      A036.scale.set(3000, 3000, 3000) //设置模型大小
+      a036Group.position.y = center.y
+      a036Group.position.x = 0
+      A036.geometry.computeBoundingBox()
+      // A036.geometry.boundingBox.set(A157.children[0].geometry.boundingBox.min, A157.children[0].geometry.boundingBox.max)
+      // A036.attributes.normal = A157.children[0].geometry.normal
+      var _c = THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,center.y,0)));
+      console.log('22222', A036, _c)
 
-      const box1 = new THREE.BoxHelper( object1 );
-      // scene.add( object );
-      // box.applyMatrix4( object.matrix );
-      // scene.add( cube );
-      box1.position.set(center.x, center.y, center.z);
-      // object1.geometry.boundingBox.setFromCenterAndSize(center, centerSize)
+      const a036Box = new THREE.BoxHelper( A036 );
+      a036Group.setRotationFromEuler(new THREE.Euler( 97, 0, 0, 'XYZ' ))
+      A036.geometry.boundingBox.setFromCenterAndSize(center, centerSize)
+      a036Group.add(A036)
+      a036Group.add(a036Box)
+      this.scene.add(a036Group)
+    },
 
-      this.scene.add( object1 )
-      let center1 = new THREE.Vector3();
-      object1.geometry.computeBoundingBox()
-      object1.geometry.boundingBox.getCenter(center1)
-      console.log('center1', center1)
+    async change() {
+      console.log(this.scene)
+      const a157 = this.scene.children[1]
+      console.log('a157 position', a157.position.x, a157.position.y, a157.position.z)
 
+      const a036 = this.scene.children[2]
+      console.log('a036 position', a036.position.x, a036.position.y, a036.position.z)
+
+      
+
+      // a036.position.set(a157.position.x, a157.position.y, a157.position.z);
+
+      // a157.children[0].geometry.computeBoundingBox()
+      // const box = new THREE.Box3();
+      // box.copy( a157.children[0].geometry.boundingBox ).applyMatrix4( a157.children[0].matrixWorld );
+      
+      // const otherGroup = new THREE.Group()
+      const loader = new THREE.ObjectLoader()
+      // const otherHelper = new THREE.Box3Helper( box, 0xffff00 );
+      const A036 = await loader.loadAsync( 'static/json/A036.json' )
+      A036.applyMatrix4( a157.children[0].children[0].matrixWorld );
+      A036.applyQuaternion(a157.children[0].children[0].quaternion)
+      A036.scale.set(5000, 5000, 5000) //设置模型大小
+      // otherGroup.add(A036)
+      // otherGroup.add(otherHelper)
+      this.scene.add(A036)
+
+      // let a157Center = new THREE.Vector3();
+      // a157.geometry.computeBoundingBox()
+      // a157.geometry.boundingBox.getCenter(a157Center)
+      // console.log('a157 center', a157.x, a157.y, a157.z)
     },
     render: function() {
       requestAnimationFrame(this.render); //请求再次执行渲染函数render

@@ -116,6 +116,9 @@ export default {
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
             }
+            // if(child.name.indexOf('87994') != -1){
+            //   that.download_txt(child.name+'.json', JSON.stringify((child.toJSON())));
+            // }
           })
 
         // that.camera.aspect = window.innerWidth / window.innerHeight;
@@ -150,6 +153,18 @@ export default {
           console.log( 'An error happened' , error);
         }
       )
+    },
+    download_txt(filename, text) {
+      var pom = document.createElement('a');
+      pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      pom.setAttribute('download', filename);
+      if (document.createEvent) {
+          var event = document.createEvent('MouseEvents');
+          event.initEvent('click', true, true);
+          pom.dispatchEvent(event);
+      } else {
+          pom.click();
+      }
     },
     makeGui: function(modelShowName) {
       let that = this
