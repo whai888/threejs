@@ -116,7 +116,7 @@ export default {
               child.userData.numConstructionSteps = child.children.length
               that.childModelList.push(child)
             }
-            // if(child.name.indexOf('87994') != -1){
+            // if(child.name.indexOf('11103') != -1){
             //   that.download_txt(child.name+'.json', JSON.stringify((child.toJSON())));
             // }
           })
@@ -368,14 +368,24 @@ export default {
             obj.scale.set(3000, 3000, 3000)
             // c.copy(obj)
             // obj.setRotationFromQuaternion(c.parent.quaternion)
-            // obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
-            // c.add(obj)
+            
+            c.add(obj)
 
             // let center = new THREE.Vector3();
           c.children.forEach((k, idx) => {
             
-            if(k.isMesh) {
-              k.geometry.merge(obj.geometry)
+            if(k.name === obj.name) {
+              // k.geometry.merge(obj.geometry)
+              console.log(obj.name)
+              var center = new THREE.Vector3()
+              c.children[0].geometry.computeBoundingBox()
+              c.children[0].geometry.boundingBox.getCenter(center)
+              obj.position.x = center.x
+              obj.position.y = center.y
+              obj.position.z = center.z
+              obj.rotation.x = c.children[0].geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,0))
+              //  obj.setRotationFromQuaternion(c.quaternion)
+              obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
               // let boxHelper = new THREE.BoxHelper(k, 0xff0000 );
               // boxHelper.applyMatrix4( k.matrix );
               // c.add(boxHelper)

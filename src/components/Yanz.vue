@@ -8,7 +8,7 @@
 <script>
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
+const ThreeBSP = require('three-js-csg')(THREE)
 
 export default {
   name: 'Yanz',
@@ -59,45 +59,66 @@ export default {
       container.appendChild(this.renderer.domElement);//body元素中插入canvas对象
     },
     async model() {
-      const loader = new THREE.ObjectLoader()
-      const A157 = await loader.loadAsync( 'static/json/87994.json' )
-      const a157Group = new THREE.Group()
-      // A157.scale.set(5000, 5000, 5000) //设置模型大小
-      var center = new THREE.Vector3()
-      var centerSize = new THREE.Vector3()
-      A157.children[0].geometry.computeBoundingBox()
-      A157.children[0].geometry.boundingBox.getCenter(center)
-      A157.children[0].geometry.boundingBox.getSize(centerSize)
-      console.log(center)
-      console.log('1', A157.rotation, centerSize)
-      const a157Box = new THREE.BoxHelper( A157 );
-      a157Group.add(A157)
-      a157Group.add(a157Box)
+      // const loader = new THREE.ObjectLoader()
+      // const A157 = await loader.loadAsync( 'static/json/parts_11103.json' )
+      // const a157Group = new THREE.Group()
+      // // A157.scale.set(5000, 5000, 5000) //设置模型大小
+      // var center = new THREE.Vector3()
+      // var centerSize = new THREE.Vector3()
+      // A157.children[0].geometry.computeBoundingBox()
+      // A157.children[0].geometry.boundingBox.getCenter(center)
+      // A157.children[0].geometry.boundingBox.getSize(centerSize)
+      // console.log(center)
+      // console.log('1', A157.children[0].rotation , centerSize)
+      // const a157Box = new THREE.BoxHelper( A157 );
+      // a157Group.add(A157)
+      // // a157Group.add(a157Box)
       
       
 
-      const a157AxesHelper = new THREE.AxesHelper( 50 );
-      a157Group.add(a157AxesHelper)
-      this.scene.add(a157Group)
+      // const a157AxesHelper = new THREE.AxesHelper( 50 );
+      // a157Group.add(a157AxesHelper)
+      // this.scene.add(a157Group)
 
-      const A036 = await loader.loadAsync( 'static/json/A036.json' )
-      A157.add(A036)
-      const a036Group = new THREE.Group()
-      A036.scale.set(3000, 3000, 3000) //设置模型大小
-      a036Group.position.y = center.y
-      a036Group.position.x = 0
-      A036.geometry.computeBoundingBox()
-      // A036.geometry.boundingBox.set(A157.children[0].geometry.boundingBox.min, A157.children[0].geometry.boundingBox.max)
-      // A036.attributes.normal = A157.children[0].geometry.normal
-      var _c = THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,center.y,0)));
-      console.log('22222', A036, _c)
+      // const A036 = await loader.loadAsync( 'static/json/A157.json' )
+      // const a036Group = new THREE.Group()
+      // A036.scale.set(3000, 3000, 3000) //设置模型大小
+      // // A036.position.y = center.y
+      // // a036Group.position.x = 0
+      // A036.geometry.computeBoundingBox()
+      // // A036.geometry.boundingBox.set(A157.children[0].geometry.boundingBox.min, A157.children[0].geometry.boundingBox.max)
+      // // A036.attributes.normal = A157.children[0].geometry.normal
+      // // var _x = A157.children[0].geometry.boundingBox.max.angleTo(new THREE.Vector3(0,0,0));
+      // // var _y = A036.geometry.boundingBox.max.angleTo(new THREE.Vector3(0,0,0));
+      // // var _y = THREE.Math.radToDeg(A157.children[0].geometry.boundingBox.min.angleTo(A036.geometry.boundingBox.min));
+      // // var _z = THREE.Math.radToDeg(A157.children[0].geometry.boundingBox.min.angleTo(new THREE.Vector3(0, 0 ,1)));
+      // // console.log('22222', A036.rotation, _x, _y)
+      // // A036.rotation.x = _x
+      // // A036.rotateY(_y)
+      // // A036.rotateZ(_z)
+      // const a036Box = new THREE.BoxHelper( A036 );
+      // // A036.rotateX(A157.children[0].rotation.x);
+      // // A036.rotateY(A157.children[0].rotation.y);
+      // // A036.rotateZ(A157.children[0].rotation.z);
+      // // a036Group.setRotationFromEuler(new THREE.Euler( 90, 0, 0, 'XYZ' ))
+      // // A036.geometry.boundingBox.setFromCenterAndSize(center, centerSize)
+      // a036Group.add(A036)
+      // a036Group.add(a036Box)
+      // const a036AxesHelper = new THREE.AxesHelper( 50 );
+      // a036Group.add(a036AxesHelper)
+      // this.scene.add(a036Group)
 
-      const a036Box = new THREE.BoxHelper( A036 );
-      a036Group.setRotationFromEuler(new THREE.Euler( 97, 0, 0, 'XYZ' ))
-      A036.geometry.boundingBox.setFromCenterAndSize(center, centerSize)
-      a036Group.add(A036)
-      a036Group.add(a036Box)
-      this.scene.add(a036Group)
+
+const loader = new THREE.ObjectLoader()
+      const A157 = await loader.loadAsync( 'static/json/parts_11103.json' )
+const A036 = await loader.loadAsync( 'static/json/A157.json' )
+const resultBSP1 = new ThreeBSP(A157)
+const resultBSP2 = new ThreeBSP(A036)
+      const resultBSP = resultBSP1.union(resultBSP2)
+      const result = resultBSP.toMesh()
+      result.geometry.computeFaceNormals()
+        result.geometry.computeVertexNormals()
+        this.scene.add(result)
     },
 
     async change() {
