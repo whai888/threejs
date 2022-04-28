@@ -98,10 +98,12 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       lDrawLoader.load(
-        'static/mpd/JX80038猛龙.ldr_Packed.mpd',
+        'static/mpd/ces.ldr_Packed.mpd',
         // 'static/mpd/car.ldr_Packed.mpd',
         function ( gltf ) {
-          that.mesh = gltf.children[0]
+          var group = new THREE.Group();
+          group.add(gltf)
+          that.mesh = group.children[0]
           // that.mesh.scale.set(100, 100, 100) //设置模型大小
           console.log('that.mesh12', gltf);
           that.mesh.userData.numConstructionSteps = that.mesh.children.length
@@ -351,7 +353,7 @@ export default {
       let meshData = []
       that.mesh.matrixAutoUpdate = false 
       // var group = new THREE.Group();
-      that.mesh.children.forEach( async (c, idx) => {     
+      that.mesh.children.forEach( async (c, idx) => {
         let data = meshto.filter(it => { return 'parts/'+it.key+'.dat' === c.name})
         if(data.length === 1) {
           console.log(c.name, data[0].val, obj)
@@ -365,27 +367,39 @@ export default {
             // obj.position.set(center.x, center.y, center.z);
             // obj.attach(c.children[0])
             c.name = data[0].val + '-' + idx
+            obj.name = data[0].val + '-' + idx
+            obj.userData.name = data[0].val + '-' + idx
             obj.scale.set(3000, 3000, 3000)
             // c.copy(obj)
             // obj.setRotationFromQuaternion(c.parent.quaternion)
-            
-            c.add(obj)
-
-            // let center = new THREE.Vector3();
-          c.children.forEach((k, idx) => {
-            
-            if(k.name === obj.name) {
-              // k.geometry.merge(obj.geometry)
-              console.log(obj.name)
-              var center = new THREE.Vector3()
+            let center = new THREE.Vector3();
+            if(c.children[0].isMesh){
+              // c.children[0].name = data[0].val + '-' + idx
               c.children[0].geometry.computeBoundingBox()
               c.children[0].geometry.boundingBox.getCenter(center)
               obj.position.x = center.x
               obj.position.y = center.y
               obj.position.z = center.z
-              obj.rotation.x = c.children[0].geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,0))
+              obj.material = c.children[0].material
+              c.add(obj)
+            }
+            // obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion)
+          c.children.forEach((k, idx) => {
+            if(k.name === obj.name) {
+              if(obj.name.indexOf('A157') != -1){
+                obj.rotateX(4.069)
+                obj.rotateY(-1.559)
+                obj.rotateZ(0.919)
+              }
+              if(obj.name.indexOf('A036') != -1 ){
+                obj.rotateX(1.570)
+                obj.rotateY(0.011)
+                obj.rotateZ(1.199)
+              }
+              // k.geometry.merge(obj.geometry)
+              
+             
               //  obj.setRotationFromQuaternion(c.quaternion)
-              obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion) 
               // let boxHelper = new THREE.BoxHelper(k, 0xff0000 );
               // boxHelper.applyMatrix4( k.matrix );
               // c.add(boxHelper)
@@ -399,14 +413,15 @@ export default {
             }
             // }
           })
-
+          }else{
+            c.children = []
           }
-          
-          meshData.push(c)
+          // meshData.push(c)
         }else{
           c.children = []
         }
       });
+      
       // this.sleep(2000)
       // console.log(111, group)
       // let res = await Promise.all(meshData.map(async it => [await that.loadJson(it.name), it]))
@@ -459,7 +474,7 @@ export default {
       // })
       // that.mesh.children = group.children
       // console.log('meshData', group)
-      // console.log('that.mesh', that.mesh)
+      console.log('that.mesh', that.mesh)
       // that.scene.remove( that.mesh )
       // that.mesh = group
       // that.scene.add( that.mesh );
