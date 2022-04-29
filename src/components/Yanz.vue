@@ -1,5 +1,6 @@
 <template>
   <div>
+    <button @click="exportObj">导出Obj</button>
     <button @click="change">转换</button>
     <div id="container"></div>
   </div>
@@ -8,6 +9,7 @@
 <script>
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 const ThreeBSP = require('three-js-csg')(THREE)
 
 export default {
@@ -22,6 +24,7 @@ export default {
       controls: null,
       childModelList: null,
       guiData: {},
+      a046: null,
       htmlData: null
     }
   },
@@ -60,16 +63,17 @@ export default {
     },
     async model() {
       const loader = new THREE.ObjectLoader()
-      const A157 = await loader.loadAsync( 'static/json/87994.json' )
+      const A157 = await loader.loadAsync( 'static/json/parts_60471.dat.json' )
       const a157Group = new THREE.Group()
       // A157.scale.set(5000, 5000, 5000) //设置模型大小
+      console.log('A157', A157)
       var center = new THREE.Vector3()
-      var centerSize = new THREE.Vector3()
+      // var centerSize = new THREE.Vector3()
       A157.children[0].geometry.computeBoundingBox()
       A157.children[0].geometry.boundingBox.getCenter(center)
-      A157.children[0].geometry.boundingBox.getSize(centerSize)
+      // A157.children[0].geometry.boundingBox.getSize(centerSize)
       console.log(center)
-      console.log('1', A157.children[0].rotation , centerSize)
+      // console.log('1', A157.children[0].rotation , centerSize)
       const a157Box = new THREE.BoxHelper( A157 );
       a157Group.add(A157)
       // a157Group.add(a157Box)
@@ -80,28 +84,30 @@ export default {
       a157Group.add(a157AxesHelper)
       this.scene.add(a157Group)
 
-      const A036 = await loader.loadAsync( 'static/json/A036.json' )
+      const A036 = await loader.loadAsync( 'static/json/YA356-01.json' )
+      console.log('A036', A036)
       const a036Group = new THREE.Group()
+      this.a046 = A036
       A036.scale.set(3000, 3000, 3000) //设置模型大小
       A036.position.x = center.x
       A036.position.y = center.y
       A036.position.z = center.z
       // a036Group.position.x = 0
-      A036.geometry.computeBoundingBox()
+      // A036.geometry.computeBoundingBox()
       // A036.geometry.boundingBox.set(A157.children[0].geometry.boundingBox.min, A157.children[0].geometry.boundingBox.max)
       // A036.attributes.normal = A157.children[0].geometry.normal
       // var _x = A157.children[0].geometry.boundingBox.max.angleTo(new THREE.Vector3(0,0,0));
-      var _x = A036.geometry.boundingBox.max.angleTo(new THREE.Vector3(0,0,0));
-      var _y = THREE.Math.radToDeg(A157.children[0].geometry.boundingBox.min.angleTo(A036.geometry.boundingBox.min));
+      // var _x = A036.geometry.boundingBox.max.angleTo(new THREE.Vector3(0,0,0));
+      // var _y = THREE.Math.radToDeg(A157.children[0].geometry.boundingBox.min.angleTo(A036.geometry.boundingBox.min));
       // var _z = THREE.Math.radToDeg(A157.children[0].geometry.boundingBox.min.angleTo(new THREE.Vector3(0, 0 ,1)));
-      console.log('22222', A036.rotation, _x, _y)
+      // console.log('22222', A036.rotation, _x, _y)
       // A036.rotation.x = _x
-      A036.rotateX(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(1,0,0))))
-      A036.rotateX(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(-1,0,0))))
-      A036.rotateY(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,1,0))))
-      A036.rotateY(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,-1,0))))
-      A036.rotateZ(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,1))))
-      A036.rotateZ(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,-1))))
+      // A036.rotateX(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(1,0,0))))
+      // A036.rotateX(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(-1,0,0))))
+      // A036.rotateY(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,1,0))))
+      // A036.rotateY(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,-1,0))))
+      // A036.rotateZ(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,1))))
+      // A036.rotateZ(THREE.Math.radToDeg(A036.geometry.boundingBox.min.angleTo(new THREE.Vector3(0,0,-1))))
       // A036.rotateZ(_z)
       const a036Box = new THREE.BoxHelper( A036 );
       // A036.rotateX(A157.children[0].rotation.x);
@@ -113,8 +119,7 @@ export default {
       a036Group.add(a036Box)
       const a036AxesHelper = new THREE.AxesHelper( 50 );
       a036Group.add(a036AxesHelper)
-      // this.scene.add(a036Group)
-      this.scene.add(A036)
+      this.scene.add(a036Group)
       
 
 
@@ -169,6 +174,22 @@ export default {
     // 创建控件对象
     createControls () {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    },
+    exportObj(){
+      const exporter = new OBJExporter();
+      const result = exporter.parse( this.a046 );
+      this.saveString( result, 'JX80038猛龙.obj' );
+    },
+    saveString( text, filename ) {
+      this.save( new Blob( [ text ], { type: 'text/plain' } ), filename );
+    },
+    save( blob, filename ) {
+      const link = document.createElement( 'a' );
+			link.style.display = 'none';
+			document.body.appendChild( link );
+      link.href = URL.createObjectURL( blob );
+      link.download = filename;
+      link.click();
     }
   },
   mounted() {

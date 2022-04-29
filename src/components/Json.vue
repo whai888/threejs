@@ -59,9 +59,9 @@ export default {
     },
     async model() {
       const loader = new THREE.ObjectLoader()
-      const object = await loader.loadAsync( 'static/json/A157.json' )
+      const object = await loader.loadAsync( 'static/json/YA357-01.json' )
       console.log('object', object)
-      object.scale.set(5000, 5000, 5000) //设置模型大小
+      object.scale.set(3000, 3000, 3000) //设置模型大小
       this.scene.add( object )
     },
     render: function() {

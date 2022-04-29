@@ -98,7 +98,7 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       lDrawLoader.load(
-        'static/mpd/ces.ldr_Packed.mpd',
+        'static/mpd/1111112333.ldr_Packed.mpd',
         // 'static/mpd/car.ldr_Packed.mpd',
         function ( gltf ) {
           var group = new THREE.Group();
@@ -119,7 +119,7 @@ export default {
               that.childModelList.push(child)
             }
             // if(child.name.indexOf('11103') != -1){
-            //   that.download_txt(child.name+'.json', JSON.stringify((child.toJSON())));
+              // that.download_txt(child.name+'.json', JSON.stringify((child.toJSON())));
             // }
           })
 
@@ -369,7 +369,7 @@ export default {
             c.name = data[0].val + '-' + idx
             obj.name = data[0].val + '-' + idx
             obj.userData.name = data[0].val + '-' + idx
-            obj.scale.set(3000, 3000, 3000)
+            obj.scale.set(2500, 2500, 2500)
             // c.copy(obj)
             // obj.setRotationFromQuaternion(c.parent.quaternion)
             let center = new THREE.Vector3();
@@ -381,20 +381,28 @@ export default {
               obj.position.y = center.y
               obj.position.z = center.z
               obj.material = c.children[0].material
-              c.add(obj)
+              // c.add(obj)
             }
+            for(let i =0 ; i < c.children.length; i++ ) {
+              c.remove(c.children[i])
+            }
+            // console.log('2222222', c)
+            c.add(obj)
             // obj.quaternion.multiplyQuaternions(c.parent.quaternion, c.quaternion)
           c.children.forEach((k, idx) => {
+            console.log('obj.name', obj.name)
             if(k.name === obj.name) {
-              if(obj.name.indexOf('A157') != -1){
-                obj.rotateX(4.069)
-                obj.rotateY(-1.559)
-                obj.rotateZ(0.919)
+              if(obj.name.indexOf('A356') != -1){
+                // obj.position = new THREE.Vector3(0.850, 1.547, -20.00);
+                obj.rotateX(3.120)
+                obj.rotateY(0.00)
+                obj.rotateZ(0.00)
               }
-              if(obj.name.indexOf('A036') != -1 ){
-                obj.rotateX(1.570)
-                obj.rotateY(0.011)
-                obj.rotateZ(1.199)
+              if(obj.name.indexOf('A357') != -1 ){
+                // obj.position = new THREE.Vector3(0.850, 1.547, -20.00)
+                obj.rotateX(3.120)
+                obj.rotateY(0.00)
+                obj.rotateZ(0.00)
               }
               // k.geometry.merge(obj.geometry)
               
@@ -409,7 +417,7 @@ export default {
               // console.log('center', center)
               // k.position.set(center.x, center.y, center.z);
             }else{
-              k.visible = false
+              // k.visible = false
             }
             // }
           })
@@ -485,6 +493,12 @@ export default {
     },
     loadJson(name) {
       let that = this
+      console.log(name)
+      if(name === 'A356'){
+        name = 'YA356-01'
+      }else if(name === 'A357'){
+        name = 'YA357-01'
+      }
       return new Promise((resolve, reject) => {
         try {
           const loader = new THREE.ObjectLoader();

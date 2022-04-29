@@ -99,7 +99,7 @@ export default {
       that.updateProgressBar( 0 );
       that.showProgressBar();
       loader.load(
-        'static/gltf/JX80038menglong.glb',
+        'static/gltf/YA356.glb',
         function ( gltf ) {
           that.mesh = gltf.scene
           that.mesh.scale.set(100, 100, 100) //设置模型大小
@@ -111,7 +111,7 @@ export default {
           let i = 0
           that.mesh.children.forEach(it => {
             console.log('that.child' + i++, it);
-            // that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
+            that.download_txt(it.name+'.json', JSON.stringify((it.toJSON())));
             // that.sleep(2000)
           })
           that.mesh.traverse(function (child) {
